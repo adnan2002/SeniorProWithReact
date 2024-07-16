@@ -8,11 +8,10 @@ const Home = () => {
   const [idError, setIdError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
+ 
 
   const courseOptions = ['ITCE314', 'ITCS325', 'ITCS222'];
 
- 
 
   const validateUniversityId = (id) => {
     const regex = /^(19[8-9]\d|20\d{2})\d{1,5}$/;
