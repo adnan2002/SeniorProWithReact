@@ -1,3 +1,5 @@
+// src/hooks/useAuth.js
+
 import { useState, useEffect } from 'react';
 import AuthService from '../services/AuthService';
 
@@ -20,8 +22,8 @@ export function useAuth() {
     }
   }
 
-  async function signUp(email, password) {
-    const result = await AuthService.signUp(email, password);
+  async function signUp(email, password, phone_number) {
+    const result = await AuthService.signUp(email, password, phone_number);
     if (result.isSignUpComplete) {
       setUser(await AuthService.getCurrentUser());
     }
@@ -49,12 +51,27 @@ export function useAuth() {
     setUser(null);
   }
 
+  async function resendConfirmationCode(email) {
+    await AuthService.resendConfirmationCode(email);
+  }
+
+  async function resetPassword(email) {
+    return await AuthService.resetPassword(email);
+  }
+
+  async function confirmResetPassword(email, confirmationCode, newPassword) {
+    await AuthService.confirmResetPassword(email, confirmationCode, newPassword);
+  }
+
   return {
     user,
     loading,
     signUp,
     confirmSignUp,
     signIn,
-    signOut
+    signOut,
+    resendConfirmationCode,
+    resetPassword,
+    confirmResetPassword
   };
 }

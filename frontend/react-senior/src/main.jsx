@@ -7,7 +7,7 @@ import  {Amplify}  from 'aws-amplify'
 const amplifyConfig = {
   Auth: {
     Cognito:{
-      userPoolWebClientId: import.meta.env.VITE_CLIENT_ID,
+      userPoolClientId: import.meta.env.VITE_CLIENT_ID,
       userPoolId: import.meta.env.VITE_USER_POOL_ID
     },  
   }
