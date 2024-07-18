@@ -1,6 +1,6 @@
 // src/services/AuthService.js
 
-import { signUp, confirmSignUp, signIn, signOut, getCurrentUser, resendSignUpCode, resetPassword, confirmResetPassword, fet} from 'aws-amplify/auth';
+import { signUp, confirmSignUp, signIn, signOut, getCurrentUser, resendSignUpCode, resetPassword, confirmResetPassword, fetchAuthSession} from 'aws-amplify/auth';
 
 class AuthService {
   async signUp(email, password, phone_number) {
@@ -39,10 +39,24 @@ class AuthService {
   async signIn(email, password) {
     try {
       const { isSignedIn, nextStep } = await signIn({ username: email, password });
+      if (isSignedIn) {
+        const session = await this.getSession();
+        return { isSignedIn, nextStep, session };
+      }
       return { isSignedIn, nextStep };
     } catch (error) {
       console.error('Error signing in:', error.message);  
       throw new Error(error.message);
+    }
+  }
+
+  async getSession() {
+    try {
+      const session = await fetchAuthSession();
+      return session;
+    } catch (error) {
+      console.error('Error fetching auth session:', error);
+      throw error;
     }
   }
 

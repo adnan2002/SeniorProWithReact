@@ -9,3 +9,6 @@ boto3
 PyPDF
 flask
 flask_cors
+requests
+pyjwt
+cryptography

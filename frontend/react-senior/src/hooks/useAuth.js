@@ -1,31 +1,36 @@
 // src/hooks/useAuth.js
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import AuthService from '../services/AuthService';
 
 export function useAuth() {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    checkAuthState();
-  }, []);
-
-  async function checkAuthState() {
+  const checkAuthState = useCallback(async () => {
     try {
       const currentUser = await AuthService.getCurrentUser();
-      setUser(currentUser);
+      if (currentUser) {
+        setUser(currentUser);
+        const currentSession = await AuthService.getSession();
+        setSession(currentSession);
+      }
     } catch (error) {
       console.error('Error checking auth state:', error);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
+
+  useEffect(() => {
+    checkAuthState();
+  }, [checkAuthState]);
 
   async function signUp(email, password, phone_number) {
     const result = await AuthService.signUp(email, password, phone_number);
     if (result.isSignUpComplete) {
-      setUser(await AuthService.getCurrentUser());
+      await checkAuthState();
     }
     return result;
   }
@@ -33,7 +38,7 @@ export function useAuth() {
   async function confirmSignUp(email, confirmationCode) {
     const result = await AuthService.confirmSignUp(email, confirmationCode);
     if (result.isSignUpComplete) {
-      setUser(await AuthService.getCurrentUser());
+      await checkAuthState();
     }
     return result;
   }
@@ -41,7 +46,7 @@ export function useAuth() {
   async function signIn(email, password) {
     const result = await AuthService.signIn(email, password);
     if (result.isSignedIn) {
-      setUser(await AuthService.getCurrentUser());
+      await checkAuthState();
     }
     return result;
   }
@@ -49,6 +54,7 @@ export function useAuth() {
   async function signOut() {
     await AuthService.signOut();
     setUser(null);
+    setSession(null);
   }
 
   async function resendConfirmationCode(email) {
@@ -66,12 +72,14 @@ export function useAuth() {
   return {
     user,
     loading,
+    session,
     signUp,
     confirmSignUp,
     signIn,
     signOut,
     resendConfirmationCode,
     resetPassword,
-    confirmResetPassword
+    confirmResetPassword,
+    getSession: AuthService.getSession
   };
 }

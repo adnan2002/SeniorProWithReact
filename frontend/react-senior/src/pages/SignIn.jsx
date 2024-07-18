@@ -5,7 +5,6 @@ import ErrorToast from '../components/ErrorToast';
 import { toast } from 'react-toastify';
 import GradientButton from '../components/GradientButton';
 import EmailInput from '../components/EmailInput';
-import PasswordInput from '../components/PasswordInput';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
