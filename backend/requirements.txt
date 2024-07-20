@@ -12,3 +12,6 @@ flask_cors
 requests
 pyjwt
 cryptography
+redis
+flask_redis
+

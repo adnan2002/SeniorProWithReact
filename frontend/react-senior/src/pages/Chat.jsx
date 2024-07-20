@@ -1,3 +1,5 @@
+// src/pages/Chat.jsx
+
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import createAuthenticatedApi from '../utils/api';
@@ -9,7 +11,7 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
   const location = useLocation();
-  const { courseId } = location.state || {}; // Add fallback for courseId
+  const { courseId } = location.state || {}; 
   const messagesEndRef = useRef(null);
   const { getSession } = useContext(AuthContext);
   const [api, setApi] = useState(null);
