@@ -25,10 +25,6 @@ const Home = () => {
     }
   }, [user, navigate, getSession]);
 
-
-
- 
-
   const handleSignOut = async () => {
     await signOut();
     navigate('/signin');
@@ -52,7 +48,7 @@ const Home = () => {
       navigate('/chat', { state: { courseId: selectedCourse } });
     } catch (error) {
       console.error('Error:', error);
-      toast.error(<ErrorToast message="Error loading chat. Server/Auth error" />);
+      toast.error(<ErrorToast message="Error loading database. Please try again." />);
     } finally {
       setIsLoading(false);
     }

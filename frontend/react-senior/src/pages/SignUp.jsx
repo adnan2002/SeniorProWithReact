@@ -110,7 +110,7 @@ const SignUp = () => {
               <EmailInput 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
-                disabled={location.state?.needConfirmation} 
+                disabled={true} 
               />
               <div>
                 <label htmlFor="confirmationCode" className="font-pmedium text-gray-100 block mb-2">
