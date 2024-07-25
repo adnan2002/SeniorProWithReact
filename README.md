@@ -33,7 +33,7 @@ Make sure to install these pre-requisites in your machine before running anythin
 
 - Node.js
 - npm
-- 
+  
 ### Steps
 
 1. Navigate to the `frontend/react-senior` folder.
