@@ -16,10 +16,17 @@ The backend is located in the `backend` folder.
 1. Navigate to the `backend` folder.
 
 2. Install the required packages:
+```
+pip install -r requirements.txt
+```
 
 3. Ensure Redis server is running on localhost at port 6379.
 
 4. Start the backend server:
+
+```
+python app.py
+```
 
 The backend server will run on `http://localhost:5000`.
 
@@ -39,8 +46,14 @@ Make sure to install these pre-requisites in your machine before running anythin
 1. Navigate to the `frontend/react-senior` folder.
 
 2. Install dependencies:
+```
+npm install
+```
 
 3. Start the development server:
+```
+npm run dev
+```
 
 The frontend application will be available at `http://localhost:5173`.
 
