@@ -134,3 +134,36 @@ def init_routes(app):
             "current_course": course_id,
             "chat_id": chat_id
         }), 200
+    @app.route('/delete_chat', methods=['DELETE'])
+    @token_required
+    def delete_chat_route():
+        user_sub = request.user_sub
+        chat_id = request.json.get('chat_id')
+        
+        if not chat_id:
+            return jsonify({"error": "Chat ID is required"}), 400
+
+        success, message = Database.delete_chat(user_sub, chat_id)
+
+        if success:
+            return jsonify({"message": message}), 200
+        else:
+            return jsonify({"error": message}), 400
+    
+    @app.route('/edit_chat_title', methods=['PUT'])
+    @token_required
+    def edit_chat_title():
+        user_sub = request.user_sub
+        data = request.json
+        chat_id = data.get('chat_id')
+        new_title = data.get('new_title')
+        
+        if not chat_id or not new_title:
+            return jsonify({"error": "Chat ID and new title are required"}), 400
+
+        success, message = Database.update_chat_title(user_sub, chat_id, new_title)
+
+        if success:
+            return jsonify({"message": message, "new_title": new_title}), 200
+        else:
+            return jsonify({"error": message}), 400

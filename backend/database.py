@@ -83,6 +83,47 @@ class Database:
     @staticmethod
     def delete_from_redis(user_sub, *keys):
         redis_client.hdel(user_sub, *keys)
+    
+    @staticmethod
+    def delete_chat(user_sub, chat_id):
+        try:
+            response = chat_history_table.delete_item(
+                Key={
+                    'userId': user_sub,
+                    'chatId': chat_id
+                },
+                ReturnValues='ALL_OLD'  
+            )
+            
+            if 'Attributes' in response:
+                return True, "Chat deleted successfully"
+            else:
+                return False, "Chat not found"
+        except Exception as e:
+            return False, f"Error deleting chat: {str(e)}"
+    
+    @staticmethod
+    def update_chat_title(user_sub, chat_id, new_title):
+        try:
+            response = chat_history_table.update_item(
+                Key={
+                    'userId': user_sub,
+                    'chatId': chat_id
+                },
+                UpdateExpression="set Title = :t",
+                ExpressionAttributeValues={
+                    ':t': new_title
+                },
+                ReturnValues="UPDATED_NEW"
+            )
+            
+            if 'Attributes' in response:
+                return True, "Chat title updated successfully"
+            else:
+                return False, "Chat not found"
+        except Exception as e:
+            return False, f"Error updating chat title: {str(e)}"
+
 
     @staticmethod
     def download_s3_folder(folder_name, temp_dir):

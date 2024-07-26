@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaChevronRight } from 'react-icons/fa';
+import { FaChevronRight, FaEllipsisV, FaTimes, FaCheck } from 'react-icons/fa';
 import createAuthenticatedApi from '../utils/api';
 import AuthContext from '../contexts/AuthContext';
 import { toast } from 'react-toastify';
@@ -15,6 +15,30 @@ const Chat = () => {
   const [api, setApi] = useState(null);
   const [chatHistory, setChatHistory] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
+  const [openMenu, setOpenMenu] = useState(null);
+  const menuRef = useRef(null);
+  const [editingTitle, setEditingTitle] = useState(null);
+  const [newTitle, setNewTitle] = useState('');
+
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const toggleMenu = (chatId, e) => {
+    e.stopPropagation();
+    setOpenMenu(openMenu === chatId ? null : chatId);
+  };
+
 
   const location = useLocation();
   const { courseId } = location.state || {};
@@ -86,6 +110,27 @@ const Chat = () => {
     } catch (error) {
       console.error('Error starting new chat session:', error);
       toast.error('Failed to start new chat session. Please try again.');
+    }
+  };
+
+  const editChatTitle = async (chatId, newTitle) => {
+    if (!api) return;
+    try {
+      const response = await api.put('/edit_chat_title', { chat_id: chatId, new_title: newTitle });
+      if (response.data.message) {
+        toast.success(response.data.message);
+        setChatHistory(prevHistory =>
+          prevHistory.map(chat =>
+            chat.chatId === chatId ? { ...chat, Title: newTitle } : chat
+          )
+        );
+        setEditingTitle(null);
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      console.error('Error editing chat title:', error);
+      toast.error('Failed to edit chat title. Please try again.');
     }
   };
 
@@ -188,6 +233,28 @@ const Chat = () => {
       .catch(err => console.error('Failed to copy: ', err));
   }, []);
 
+  const deleteChat = async (chatId) => {
+    if (!api) return;
+
+    try {
+      const response = await api.delete('/delete_chat', { data: { chat_id: chatId } });
+      if (response.data.message) {
+        toast.success(response.data.message);
+        setChatHistory(prevHistory => prevHistory.filter(chat => chat.chatId !== chatId));
+        if (selectedChat === chatId) {
+          setMessages([]);
+          setMessageCount(0);
+          setSelectedChat(null);
+        }
+      } else {
+        toast.error(response.data.error);
+      }
+    } catch (error) {
+      console.error('Error deleting chat:', error);
+      toast.error('Failed to delete chat. Please try again.');
+    }
+  };
+
   if (!courseId) return <div>Error: No course selected</div>;
 
   return (
@@ -204,31 +271,109 @@ const Chat = () => {
             >
               <h2 className="text-xl font-bold mb-4">Chat History</h2>
               <div 
-                ref={chatHistoryRef} 
-                className="overflow-y-auto flex-grow"
-                style={{ 
-                  scrollbarWidth: 'thin', 
-                  scrollbarColor: '#4B5563 #1F2937',
-                  maxHeight: 'calc(100vh - 120px)'
+  ref={chatHistoryRef} 
+  className="overflow-y-auto flex-grow"
+  style={{ 
+    scrollbarWidth: 'thin', 
+    scrollbarColor: '#4B5563 #1F2937',
+    maxHeight: 'calc(100vh - 120px)'
+  }}
+>
+  {chatHistory.length > 0 ? (
+    chatHistory.map((chat) => (
+      <div
+        key={chat.chatId}
+        className={`p-2 mb-2 bg-gray-700 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-600 ${
+          selectedChat === chat.chatId ? 'border-2 border-blue-500' : ''
+        } relative group`}
+        onClick={() => loadChat(chat.chatId)}
+      >
+        <div className="flex justify-between items-center">
+          {editingTitle === chat.chatId ? (
+            <input
+              type="text"
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              className="bg-gray-600 text-white px-2 py-1 rounded flex-grow "
+              autoFocus
+              onClick={(e) => e.stopPropagation()} // Prevent click from bubbling up
+            />
+          ) : (
+            <span className="flex-grow truncate">{chat.Title}</span>
+          )}
+          <button 
+            className="text-white opacity-0 group-hover:opacity-100 transition-opacity ml-2"
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent click from bubbling up
+              toggleMenu(chat.chatId, e);
+            }}
+          >
+            <FaEllipsisV />
+          </button>
+        </div>
+        {openMenu === chat.chatId && (
+          <div 
+            ref={menuRef} 
+            className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-10"
+            onClick={(e) => e.stopPropagation()} // Prevent click from bubbling up
+          >
+            <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+              {editingTitle === chat.chatId ? (
+                <>
+                  <button
+                    className="block px-4 py-2 text-sm text-green-700 hover:bg-gray-100 hover:text-green-900 w-full text-left"
+                    role="menuitem"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      editChatTitle(chat.chatId, newTitle);
+                    }}
+                  >
+                    <FaCheck className="inline mr-2" /> Save
+                  </button>
+                  <button
+                    className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100 hover:text-red-900 w-full text-left"
+                    role="menuitem"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingTitle(null);
+                    }}
+                  >
+                    <FaTimes className="inline mr-2" /> Cancel
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 w-full text-left"
+                  role="menuitem"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingTitle(chat.chatId);
+                    setNewTitle(chat.Title);
+                  }}
+                >
+                  Edit Title
+                </button>
+              )}
+              <button
+                className="block px-4 py-2 text-sm text-red-700 hover:bg-gray-100 hover:text-red-900 w-full text-left"
+                role="menuitem"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteChat(chat.chatId);
                 }}
               >
-                {chatHistory.length > 0 ? (
-                  chatHistory.map((chat) => (
-                    <div
-                      key={chat.chatId}
-                      className={`p-2 mb-2 bg-gray-700 rounded-lg cursor-pointer transition-colors duration-200 hover:bg-gray-600 ${
-                        selectedChat === chat.chatId ? 'border-2 border-blue-500' : ''
-                      }`}
-                      onClick={() => loadChat(chat.chatId)}
-                    >
-                      {chat.Title}
-                    </div>
-                  ))
-                ) : (
-                  <p>No chat history yet.</p>
-                )}
-              </div>
-              {user && (
+                Delete
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    ))
+  ) : (
+    <p>No chat history yet.</p>
+  )}
+</div>
+             {user && (
                 <div className="mt-4 overflow-hidden cursor-pointer">
                   <p 
                     className="font-light text-white truncate text-sm p-2 rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors duration-200" 
