@@ -83,7 +83,7 @@ class ChatManager:
         conversation_memory = ConversationBufferWindowMemory(k=15)
         chat_id = str(uuid.uuid4())
 
-        if message_count not in ('0', 0):
+        if message_count not in ('0', 0) or current_chat_id is not None:
             self.save_chat(user_sub, course_id, messages, message_count, current_chat_id)
         
         Database.store_in_redis(user_sub, 'current_course', course_id)

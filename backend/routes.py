@@ -113,19 +113,19 @@ def init_routes(app):
         if not course_id:
             return jsonify({"error": "Course ID is required"}), 400
 
+        memory_bytes = Database.get_from_redis(user_sub, 'conversation_memory')
+        message_count = int(Database.get_from_redis(user_sub, 'message_count'))
         try:
-            memory_bytes = Database.get_from_redis(user_sub, 'conversation_memory')
-            message_count = int(Database.get_from_redis(user_sub, 'message_count'))
             current_chat_id = Database.get_from_redis(user_sub, 'current_chat_id').decode()
+        except AttributeError:
+            current_chat_id = None
             
-            if memory_bytes:
-                conversation_memory = pickle.loads(memory_bytes)
-                messages = conversation_memory.chat_memory.messages
-            else:
-                messages = []
+        if memory_bytes:
+            conversation_memory = pickle.loads(memory_bytes)
+            messages = conversation_memory.chat_memory.messages
+        else:
+            messages = []
 
-        except Exception as e:
-            return jsonify({"error": f"Failed to retrieve chat data: {str(e)}"}), 500
 
         chat_id = chat_manager.start_new_chat(user_sub, course_id, messages, message_count, current_chat_id)
 
