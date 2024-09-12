@@ -1,12 +1,20 @@
-// src/components/DepartmentCourseSelection.js
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // Import axios for making API requests
 
 const DepartmentCourseSelection = ({ onSelect }) => {
   const [department, setDepartment] = useState('');
   const [courseId, setCourseId] = useState('');
+  const [courseOptions, setCourseOptions] = useState([]);
 
-  const courseOptions = ['ITCE314', 'ITCS325', 'ITCS222'];
+  useEffect(() => {
+    axios.get('http://localhost:5000/courses') 
+      .then((response) => {
+        setCourseOptions(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching courses:", error);
+      });
+  }, []);
 
   const handleSelect = () => {
     onSelect(department, courseId);

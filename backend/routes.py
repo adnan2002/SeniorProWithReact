@@ -4,6 +4,8 @@ from chat import chat_manager
 from database import Database
 from utils import serialize_messages, deserialize_messages
 import pickle
+import json
+import os
 
 def init_routes(app):
     @app.route('/save_chat', methods=['POST'])
@@ -167,3 +169,13 @@ def init_routes(app):
             return jsonify({"message": message, "new_title": new_title}), 200
         else:
             return jsonify({"error": message}), 400
+    
+    @app.route('/courses', methods=['GET'])
+    def get_courses():
+        try:
+            courses_path = os.path.join(os.path.dirname(__file__), 'courses.json')
+            with open(courses_path, 'r') as f:
+                courses = json.load(f)
+            return jsonify(courses), 200
+        except FileNotFoundError:
+            return jsonify({"error": "Courses file not found"}), 404
